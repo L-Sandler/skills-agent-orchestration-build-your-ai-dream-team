@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A sample overview of project status, ownership, activity, and priority.">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="dashboard-header">
+        <p class="dashboard-eyebrow">Team overview</p>
+        <h1 class="dashboard-title">Project Pulse</h1>
+        <p class="dashboard-description">
+          A clear snapshot of project momentum, ownership, and where attention may be needed.
+        </p>
+        <p class="dashboard-updated">
+          Illustrative sample data — these entries are not verified live team records.
+        </p>
+      </header>
+
+      <section class="summary-grid" aria-label="Project summary">
+        <article class="summary-card">
+          <span class="summary-label">Total projects</span>
+          <span class="summary-value" id="total-count">—</span>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Active</span>
+          <span class="summary-value" id="active-count">—</span>
+        </article>
+        <article class="summary-card summary-card--attention">
+          <span class="summary-label">Blocked</span>
+          <span class="summary-value" id="blocked-count">—</span>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">High priority</span>
+          <span class="summary-value" id="priority-count">—</span>
+        </article>
+      </section>
+
+      <section aria-labelledby="projects-heading">
+        <div class="dashboard-toolbar">
+          <div>
+            <h2 class="dashboard-section-title" id="projects-heading">Projects</h2>
+            <p class="dashboard-section-caption">Filter the sample projects by current status.</p>
+          </div>
+          <div class="filter-list" role="group" aria-label="Filter projects by status">
+            <button class="filter-chip" type="button" data-filter="all" aria-pressed="true">All</button>
+            <button class="filter-chip" type="button" data-filter="active" aria-pressed="false">Active</button>
+            <button class="filter-chip" type="button" data-filter="planning" aria-pressed="false">Planning</button>
+            <button class="filter-chip" type="button" data-filter="blocked" aria-pressed="false">Blocked</button>
+            <button class="filter-chip" type="button" data-filter="complete" aria-pressed="false">Complete</button>
+          </div>
+        </div>
+
+        <div class="dashboard-legend" aria-label="Status legend">
+          <span class="legend-item"><span class="legend-dot legend-dot--active" aria-hidden="true"></span>Active</span>
+          <span class="legend-item"><span class="legend-dot legend-dot--planning" aria-hidden="true"></span>Planning</span>
+          <span class="legend-item"><span class="legend-dot legend-dot--blocked" aria-hidden="true"></span>Blocked</span>
+          <span class="legend-item"><span class="legend-dot" aria-hidden="true"></span>Complete</span>
+        </div>
+
+        <p class="sr-only" id="results-announcement" role="status" aria-live="polite"></p>
+        <div class="project-grid" id="project-grid" aria-busy="true"></div>
+        <section class="empty-state" id="empty-state" aria-labelledby="empty-state-title" hidden>
+          <h3 class="empty-state-title" id="empty-state-title">No projects to show</h3>
+          <p id="empty-state-message">There are no projects in this sample dataset.</p>
+        </section>
+        <section class="error-state" id="error-state" aria-labelledby="error-state-title" role="alert" hidden>
+          <h3 class="error-state-title" id="error-state-title">Projects could not be loaded</h3>
+          <p id="error-state-message">Check that the sample project data is available, then reload the page.</p>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const allowedStatuses = new Set(["active", "planning", "blocked", "complete"]);
+        const allowedPriorities = new Set(["high", "medium", "low"]);
+        const projectGrid = document.getElementById("project-grid");
+        const emptyState = document.getElementById("empty-state");
+        const emptyStateMessage = document.getElementById("empty-state-message");
+        const errorState = document.getElementById("error-state");
+        const resultsAnnouncement = document.getElementById("results-announcement");
+        const filters = Array.from(document.querySelectorAll("[data-filter]"));
+        let projects = [];
+        let currentFilter = "all";
+
+        function isProject(project) {
+          return project !== null
+            && typeof project === "object"
+            && ["name", "owner", "status", "recentActivity", "priority", "summary"]
+              .every((field) => typeof project[field] === "string" && project[field].trim() !== "")
+            && allowedStatuses.has(project.status)
+            && allowedPriorities.has(project.priority);
+        }
+
+        function createTextElement(tagName, className, text) {
+          const element = document.createElement(tagName);
+          element.className = className;
+          element.textContent = text;
+          return element;
+        }
+
+        function createProjectCard(project) {
+          const card = document.createElement("article");
+          card.className = "project-card";
+          if (project.priority === "high") {
+            card.classList.add("project-card--high-priority");
+          }
+
+          const header = document.createElement("div");
+          header.className = "project-card-header";
+          header.append(createTextElement("h3", "project-card-title", project.name));
+
+          const badges = document.createElement("div");
+          badges.className = "project-card-badges";
+          const status = createTextElement("span", "status-badge", project.status);
+          status.dataset.status = project.status;
+          const priority = createTextElement("span", "priority-badge", `${project.priority} priority`);
+          priority.dataset.priority = project.priority;
+          badges.append(status, priority);
+          header.append(badges);
+          card.append(header);
+
+          const owner = document.createElement("p");
+          owner.className = "project-owner";
+          const avatar = createTextElement("span", "owner-avatar", project.owner.trim().split(/\s+/)
+            .map((part) => part.charAt(0))
+            .join("")
+            .slice(0, 2)
+            .toUpperCase());
+          avatar.setAttribute("aria-hidden", "true");
+          owner.append(avatar, document.createTextNode(`Owner: ${project.owner}`));
+          card.append(owner);
+
+          card.append(createTextElement("p", "project-summary", project.summary));
+
+          const footer = document.createElement("footer");
+          footer.className = "project-card-footer";
+          footer.append(
+            createTextElement("span", "activity-label", "Recent activity"),
+            createTextElement("p", "project-activity", project.recentActivity)
+          );
+          card.append(footer);
+          return card;
+        }
+
+        function renderProjects() {
+          const visibleProjects = projects.filter((project) =>
+            currentFilter === "all" || project.status === currentFilter
+          );
+          projectGrid.replaceChildren(...visibleProjects.map(createProjectCard));
+          projectGrid.hidden = visibleProjects.length === 0;
+          emptyState.hidden = visibleProjects.length !== 0;
+          if (projects.length === 0) {
+            emptyStateMessage.textContent = "There are no projects in this sample dataset.";
+          } else if (visibleProjects.length === 0) {
+            emptyStateMessage.textContent = `No projects currently have ${currentFilter} status. Choose another filter to see projects.`;
+          }
+          resultsAnnouncement.textContent = `${visibleProjects.length} ${visibleProjects.length === 1 ? "project" : "projects"} shown.`;
+        }
+
+        function updateSummary() {
+          document.getElementById("total-count").textContent = String(projects.length);
+          document.getElementById("active-count").textContent =
+            String(projects.filter((project) => project.status === "active").length);
+          document.getElementById("blocked-count").textContent =
+            String(projects.filter((project) => project.status === "blocked").length);
+          document.getElementById("priority-count").textContent =
+            String(projects.filter((project) => project.priority === "high").length);
+        }
+
+        filters.forEach((button) => {
+          button.addEventListener("click", () => {
+            currentFilter = button.dataset.filter;
+            filters.forEach((filter) => {
+              filter.setAttribute("aria-pressed", String(filter === button));
+            });
+            renderProjects();
+          });
+        });
+
+        fetch("project-data.json")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Project data request failed with status ${response.status}.`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (!data || !Array.isArray(data.projects) || !data.projects.every(isProject)) {
+              throw new Error("Project data must contain a projects array with complete, supported fields.");
+            }
+            projects = data.projects;
+            updateSummary();
+            renderProjects();
+            projectGrid.setAttribute("aria-busy", "false");
+          })
+          .catch((error) => {
+            console.error("Unable to load Project Pulse sample data:", error);
+            projectGrid.hidden = true;
+            projectGrid.setAttribute("aria-busy", "false");
+            errorState.hidden = false;
+          });
+      })();
+    </script>
+  </body>
+</html>

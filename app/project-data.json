@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "name": "Contributor Welcome Refresh",
+      "owner": "Mona Patel",
+      "status": "active",
+      "recentActivity": "Drafted a simpler first-contribution checklist.",
+      "priority": "high",
+      "summary": "Make it easier for new contributors to find a first task and get oriented."
+    },
+    {
+      "name": "Community Handbook",
+      "owner": "Jordan Lee",
+      "status": "planning",
+      "recentActivity": "Collected suggested updates from maintainers.",
+      "priority": "medium",
+      "summary": "Bring team practices and helpful links together in one friendly guide."
+    },
+    {
+      "name": "Issue Triage Workflow",
+      "owner": "Avery Chen",
+      "status": "blocked",
+      "recentActivity": "Waiting on agreement about the new label set.",
+      "priority": "high",
+      "summary": "Create a consistent path for reviewing, labeling, and routing incoming issues."
+    },
+    {
+      "name": "Release Notes Template",
+      "owner": "Riley Morgan",
+      "status": "complete",
+      "recentActivity": "Published a reusable release notes template.",
+      "priority": "low",
+      "summary": "Help maintainers communicate changes with clear, contributor-friendly notes."
+    },
+    {
+      "name": "Docs Navigation Tune-up",
+      "owner": "Sam Rivera",
+      "status": "active",
+      "recentActivity": "Reviewed the top-level navigation with contributors.",
+      "priority": "medium",
+      "summary": "Make frequently used documentation easier to discover and navigate."
+    }
+  ]
+}
